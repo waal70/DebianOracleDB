@@ -28,6 +28,9 @@ config.vm.network "forwarded_port", guest: 1521, host: 1521
 
 config.vm.synced_folder ".", "/vagrant", disabled: true
 
+#Uncomment the following line for further development to this image:
+config.ssh.insert_key = false
+
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
   # config.vm.network "private_network", ip: "192.168.33.10"
