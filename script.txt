@@ -1,0 +1,53 @@
+INSTALLATION of Oracle 12c on Debian Linux:
+
+1) prepare minimal installation of Debian (Only SSH Server)
+Set VBoxManage modifyvm "vmname" --defaultfrontend headless
+Memory 9216MB, 2 processors, maximum acceleration
+2) add groups, users (groups.sh, users.sh)
+3) add symlinks: ln -s /usr/bin/awk /bin/awk
+ln -s usr/lib/x86..../ /usr/lib64
+4) place oraInst.loc in /etc/ and chown to oracle:oinstall
+5) set /etc/security/limits.conf, adding oracle    soft|hard  nproc 16384
+6) apt-get install make binutils gcc libaio1
+7) mkdir /u01 and /u01/app - chown to oracle:oinstall chmod to 775
+8) place db.rsp into /home/oracle/ and chmod to 775
+9) Modify /etc/sysctl.conf:
+kernel.sem = 250 32000 100 128
+net.ipv4.ip_local_port_range = 9000 65500
+net.core.rmem_default = 4194304
+net.core.rmem_max = 4194304
+net.core.wmem_default = 262144
+net.core.wmem_max = 1048576
+fs.aio-max-nr = 1048576
+fs.file-max = 681574
+and effect these changes sysctl -p
+10) optionally edit fstab to access the network share with db-install unzipped files
+11) navigate to unzipped files/database and run ./runInstaller -silent -responseFile /home/oracle/db.rsp
+12) wait for it to finish
+13) run the required root scripts
+14) run the required user-level scripts using cfgrsp.properties
+15) configure port forwarding for VM to 5500
+16) create .profile and export ORACLE_SID, ORACLE_HOME and PATH (export PATH=$PATH:$ORACLE_HOME/bin
+17) after shutdown, start pluggable database:
+ALTER PLUGGABLE DATABASE <all|pdb_name> OPEN;
+18) create autostart trigger:
+CREATE OR REPLACE TRIGGER open_pdbs 
+  AFTER STARTUP ON DATABASE 
+BEGIN 
+   EXECUTE IMMEDIATE 'ALTER PLUGGABLE DATABASE ALL OPEN'; 
+END open_pdbs;
+/
+19) configure autostart script /etc/init.d/dbora and run update-rc.d dbora defaults
+20) also edit /etc/oratab and set instance to Y
+
+A note on vagrant:
+create vagrant group & user (password: vagrant)
+add passwordless vagrant (add file local in /etc/sudoers.d and add: vagrant  ALL=(ALL) NOPASSWD: ALL
+create .ssh in ~
+make vagrant.pub authorized key
+.ssh chmod to 0700
+authorized_keys to 0600
+
+vagrant package --base <basename> --output <basename>.box
+add box to library:
+vagrant box add mybox file:///e:/VMs/to/file.box
